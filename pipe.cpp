@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <ctype.h>
 
+//TODO: try to read and write the pipes direclty
+//TODO: refactor the code
+
 int main(void) {
     int parent_write[2];
     int child_write[2]; 
