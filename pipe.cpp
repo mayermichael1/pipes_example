@@ -7,37 +7,46 @@
 //TODO: try to read and write the pipes direclty
 //TODO: refactor the code
 
-static const int READ = 0;
-static const int WRITE = 1;
+union pipeStruct{
+    struct{
+        int out;
+        int in;
+    };
+
+    struct{
+        int write;
+        int read;
+    };
+};
 
 int main(void) {
-    int parentWritePipe[2] = {0};
-    int childWritePipe[2] = {0}; 
+    pipeStruct writeToParentPipe = {};
+    pipeStruct writeToChildPipe = {};
     pid_t childPid = 0;
 
-    pipe(parentWritePipe);
-    pipe(childWritePipe);
+    pipe((int*)&writeToParentPipe);
+    pipe((int*)&writeToChildPipe);
 
     if (!(childPid = fork())) { // this is the cap
-        close(childWritePipe[READ]);
-        close(parentWritePipe[WRITE]);
+        close(writeToChildPipe.in);
+        close(writeToParentPipe.out);
 
-        dup2(parentWritePipe[READ], STDIN_FILENO);
-        dup2(childWritePipe[WRITE], STDOUT_FILENO);
+        dup2(writeToChildPipe.out, STDIN_FILENO);
+        dup2(writeToParentPipe.in, STDOUT_FILENO);
 
         char *cap[2] = {(char*)"./cap", NULL};
         if(execv(cap[0], cap) == -1){
             return 0;             
         }
     } else { // this is the pipe
-        close(parentWritePipe[READ]);
-        close(childWritePipe[WRITE]);
+        close(writeToParentPipe.in);
+        close(writeToChildPipe.out);
 
         for (int i = 0; i < 10; i++) {
           char buffer = ('a' + i);
-          write(parentWritePipe[WRITE], &buffer, 1);
+          write(writeToChildPipe.in , &buffer, 1);
           fprintf(stdout, "sent: %c\n", buffer);
-          read(childWritePipe[READ], &buffer, 1);
+          read(writeToParentPipe.out, &buffer, 1);
           fprintf(stdout, "received: %c\n", buffer);
         }
 
