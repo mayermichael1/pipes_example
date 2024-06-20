@@ -33,15 +33,12 @@ int main(void) {
         close(parentWritePipe[READ]);
         close(childWritePipe[WRITE]);
 
-        dup2(parentWritePipe[WRITE], STDOUT_FILENO);
-        dup2(childWritePipe[READ], STDIN_FILENO);
-
         for (int i = 0; i < 10; i++) {
           char buffer = ('a' + i);
-          write(1, &buffer, 1);
-          fprintf(stderr, "sent: %c\n", buffer);
-          read(0, &buffer, 1);
-          fprintf(stderr, "received: %c\n", buffer);
+          write(parentWritePipe[WRITE], &buffer, 1);
+          fprintf(stdout, "sent: %c\n", buffer);
+          read(childWritePipe[READ], &buffer, 1);
+          fprintf(stdout, "received: %c\n", buffer);
         }
 
         kill(childPid, 1);
