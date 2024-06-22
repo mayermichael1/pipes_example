@@ -4,9 +4,6 @@
 #include <unistd.h>
 #include <ctype.h>
 
-//TODO: try to read and write the pipes direclty
-//TODO: refactor the code
-
 union pipeStruct{
     struct{
         int out;
